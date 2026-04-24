@@ -1,0 +1,26 @@
+name: Build Geode Mod
+
+on:
+  push:  # Сборка будет запускаться при каждом обновлении кода
+    branches: [ "main" ]
+  workflow_dispatch:  # А эту кнопку можно будет нажать вручную
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Build Geode Mod
+        uses: geode-sdk/build-geode-mod@main
+        id: build
+        with:
+          sdk: 'latest'
+          cli: 'latest'
+          build-config: 'Release'
+      
+      - name: Upload Mod Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyGeodeMod  # Название итогового файла измени как хочешь
+          path: ${{ steps.build.outputs.build-output }}
