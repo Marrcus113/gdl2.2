@@ -19,39 +19,26 @@ jobs:
           7z x ninja.zip -oninja
           echo "${{ github.workspace }}/ninja" >> $env:GITHUB_PATH
 
-      - name: Setup Geode SDK & CLI
+      - name: Download Geode CLI
         run: |
-          # Скачиваем Geode CLI
           curl -L https://github.com/geode-sdk/cli/releases/latest/download/geode-cli-v3.7.4-win.zip -o geode-cli.zip
           7z x geode-cli.zip -ogeode-cli
-          echo "${{ github.workspace }}/geode-cli" >> $env:GITHUB_PATH
-          
-          # Устанавливаем Geode SDK через CLI
-          mkdir geode-sdk
-          cd geode-sdk
-          geode sdk install
-          cd ..
-          
-          # Устанавливаем переменную окружения для Geode SDK
-          $env:GEODE_SDK = "${{ github.workspace }}/geode-sdk/sdk"
-          echo "GEODE_SDK=${{ github.workspace }}/geode-sdk/sdk" >> $env:GITHUB_ENV
+
+      - name: Install Geode SDK
+        run: |
+          $geodePath = "${{ github.workspace }}/geode-cli/geode"
+          & $geodePath sdk install
+          $geodeSDK = "${{ github.workspace }}/geode-sdk/sdk"
+          echo "GEODE_SDK=$geodeSDK" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Build Geode Mod
         run: |
-          # Удаляем старый build, если есть
+          $geodePath = "${{ github.workspace }}/geode-cli/geode"
           if (Test-Path -Path "build") { Remove-Item -Recurse -Force -Path "build" }
-          mkdir build
-          cd build
-          cmake .. -G "Ninja"
-          cmake --build . --config RelWithDebInfo
-          cd ..
-        env:
-          GEODE_SDK: ${{ env.GEODE_SDK }}
+          & $geodePath build
 
       - name: Upload Mod
         uses: actions/upload-artifact@v4
         with:
           name: GDL_Mod
-          path: |
-            build/*.geode
-            build/*.dll
+          path: build/*.geode
