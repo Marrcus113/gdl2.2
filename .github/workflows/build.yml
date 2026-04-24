@@ -12,31 +12,14 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Ninja
-        run: |
-          curl -L https://github.com/ninja-build/ninja/releases/latest/download/ninja-win.zip -o ninja.zip
-          7z x ninja.zip -oninja
-          echo "${{ github.workspace }}/ninja" >> $env:GITHUB_PATH
-
-      - name: Download Geode CLI
-        run: |
-          curl -L https://github.com/geode-sdk/cli/releases/latest/download/geode-cli-v3.7.4-win.zip -o geode-cli.zip
-          7z x geode-cli.zip -ogeode-cli
-
-      - name: Install Geode SDK
-        run: |
-          $geodePath = "${{ github.workspace }}/geode-cli/geode"
-          & $geodePath sdk install
-          $geodeSDK = "${{ github.workspace }}/geode-sdk/sdk"
-          echo "GEODE_SDK=$geodeSDK" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
+      
       - name: Build Geode Mod
-        run: |
-          $geodePath = "${{ github.workspace }}/geode-cli/geode"
-          if (Test-Path -Path "build") { Remove-Item -Recurse -Force -Path "build" }
-          & $geodePath build
-
+        uses: geode-sdk/build-geode-mod@main
+        with:
+          sdk: 'latest'
+          cli: 'latest'
+          build-config: 'RelWithDebInfo'
+      
       - name: Upload Mod
         uses: actions/upload-artifact@v4
         with:
